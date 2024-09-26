@@ -251,6 +251,14 @@ namespace MudBlazor
             FieldChanged(value);
         }
 
+        private string? GetInputTitle()
+            => Files switch
+            {
+                IReadOnlyList<IBrowserFile> { Count: > 0 } fileList => string.Join(", ", fileList.Select(file => file.Name)),
+                IBrowserFile file => file.Name,
+                _ => null
+            };
+
         protected override T? ReadValue() => _filesState.Value;
 
         protected override Task WriteValueAsync(T? value) => _filesState.SetValueAsync(value);

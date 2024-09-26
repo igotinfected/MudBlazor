@@ -2,15 +2,10 @@
 // MudBlazor licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Bunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MudBlazor.UnitTests.Dummy;
@@ -374,6 +369,69 @@ namespace MudBlazor.UnitTests.Components
 
             comp.Find("input").HasAttribute("required").Should().BeTrue();
             comp.Find("input").GetAttribute("aria-required").Should().Be("true");
+        }
+
+        [Test]
+        public void Should_provide_a_correct_input_title_for_a_single_file()
+        {
+            var comp = Context.RenderComponent<MudFileUpload<IBrowserFile>>();
+
+            comp.Find("input").GetAttribute("title").Should().BeNull();
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, new DummyBrowserFile("cat.jpg", DateTimeOffset.Now, 0, string.Empty, [])));
+            comp.Find("input").GetAttribute("title").Should().Be("cat.jpg");
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, new DummyBrowserFile("dog.jpg", DateTimeOffset.Now, 0, string.Empty, [])));
+            comp.Find("input").GetAttribute("title").Should().Be("dog.jpg");
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, null));
+            comp.Find("input").GetAttribute("title").Should().BeNull();
+        }
+
+        [Test]
+        public void Should_prefer_a_user_provided_input_title_over_the_internal_title_for_a_single_file()
+        {
+            var comp = Context.RenderComponent<MudFileUpload<IBrowserFile>>(parameters => parameters
+                .Add(p => p.Files, new DummyBrowserFile("cat.jpg", DateTimeOffset.Now, 0, string.Empty, []))
+                .Add(p => p.UserAttributes, new Dictionary<string, object> { {"title", "not-a-cat.jpg"} }));
+            comp.Find("input").GetAttribute("title").Should().Be("not-a-cat.jpg");
+        }
+
+        [Test]
+        public void Should_provide_a_correct_input_title_for_a_list_of_files()
+        {
+            var comp = Context.RenderComponent<MudFileUpload<IReadOnlyList<IBrowserFile>>>();
+
+            comp.Find("input").GetAttribute("title").Should().BeNull();
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, [new DummyBrowserFile("cat.jpg", DateTimeOffset.Now, 0, string.Empty, [])]));
+            comp.Find("input").GetAttribute("title").Should().Be("cat.jpg");
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, [
+                    new DummyBrowserFile("cat.jpg", DateTimeOffset.Now, 0, string.Empty, []),
+                    new DummyBrowserFile("dog.jpg", DateTimeOffset.Now, 0, string.Empty, [])
+                ]));
+            comp.Find("input").GetAttribute("title").Should().Be("cat.jpg, dog.jpg");
+
+            comp.SetParametersAndRender(parameters => parameters
+                .Add(p => p.Files, null));
+            comp.Find("input").GetAttribute("title").Should().BeNull();
+        }
+
+        [Test]
+        public void Should_prefer_a_user_provided_input_title_over_the_internal_title_for_a_list_of_files()
+        {
+            var comp = Context.RenderComponent<MudFileUpload<IReadOnlyList<IBrowserFile>>>(parameters => parameters
+                .Add(p => p.Files, [
+                    new DummyBrowserFile("cat.jpg", DateTimeOffset.Now, 0, string.Empty, []),
+                    new DummyBrowserFile("dog.jpg", DateTimeOffset.Now, 0, string.Empty, [])])
+                .Add(p => p.UserAttributes, new Dictionary<string, object> { {"title", "not-a-cat.jpg"} }));
+            comp.Find("input").GetAttribute("title").Should().Be("not-a-cat.jpg");
         }
     }
 }

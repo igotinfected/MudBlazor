@@ -15,6 +15,7 @@
                    multiple="@(typeof(T) == typeof(IReadOnlyList<IBrowserFile>) ? "" : null)"
                    accept="@Accept"
                    disabled="@(GetDisabledState())"
+                   title="@GetInputTitle()"
                    @attributes="UserAttributes"
                    required="@Required"
                    aria-required="@Required.ToString().ToLowerInvariant()"/>
